@@ -10,12 +10,14 @@ public class RemoveAnnotation2 {
 	 * @Title AnnotationRemove version2
 	 * @Discription using Finit state machine method
 	 * @author Fred
-	 * @time 2014/12/22
+	 * @time 2014/12/24 0:19
 	 */
-	static String inputFile = "E:\\test\\test1.java";
-	static String outputFile = "E:\\test\\test1_rep1.java ";
+	final int LEN=256;
+	
+	static String inputFile = "";
+	static String outputFile = "";
 
-	int[][] fsm = new int[10][128];
+	int[][] fsm = new int[10][LEN];
 
 	int state = 0;
 
@@ -25,13 +27,23 @@ public class RemoveAnnotation2 {
 		if (args.length >= 2) {
 			inputFile = args[0];
 			outputFile = args[1];
+		}else{
+			System.out.println("Wrong input!");
+			return;
 		}
-		RemoveAnnotation2 me = new RemoveAnnotation2();
-		me.initFSM();
-
+		
 		File input = new File(inputFile);
 		File output = new File(outputFile);
-
+		
+		if(!input.exists()){
+			System.out.println("File doesn't exist!");
+			return;
+		}
+		
+		RemoveAnnotation2 me = new RemoveAnnotation2();
+		
+		me.initFSM();
+		
 		try {
 			me.handleFile(input, output);
 		} catch (Exception ex) {
@@ -42,7 +54,7 @@ public class RemoveAnnotation2 {
 
 	public void initFSM() {
 		//初始化状态机
-		for (int i = 0; i < 128; i++) {
+		for (int i = 0; i <LEN; i++) {
 			fsm[0][i] = 0;
 			fsm[1][i] = 0;
 			fsm[2][i] = 2;
@@ -94,8 +106,11 @@ public class RemoveAnnotation2 {
 		BufferedWriter bw = new BufferedWriter(new FileWriter(out));
 
 		while ((c = br.read()) != -1) {
-
+			if(c>256){
+				state =fsm[state][' '];
+			}else{
 			state = fsm[state][c];
+			}
 			temp = temp + parseInt(c);
 			switch (state) {
 			case 0:
@@ -105,10 +120,9 @@ public class RemoveAnnotation2 {
 			case 9:
 				//注释结束态，将除了换行的字符全部替换为“ ”输出。
 				cbuf = temp.toCharArray();
-				for (int i = 0; i < cbuf.length; i++)
-					if (cbuf[i] != '\n')
-						cbuf[i] = ' ';
-
+				for (int i = 0; i < cbuf.length; i++){
+					if ((cbuf[i] != '\n')&&(cbuf[i] != '\r'))  cbuf[i] = ' ';
+				}	
 				bw.write(cbuf);
 				temp = "";
 				cbuf = null;
@@ -118,7 +132,8 @@ public class RemoveAnnotation2 {
 
 		br.close();
 		bw.close();
-
+		
+		System.out.println("File has been handled successfully!");
 	}
 
 }
